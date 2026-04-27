@@ -1,0 +1,75 @@
+# FreeModbus STM32 移植文件清单
+
+## 必需文件（必须包含）
+
+### 1. 移植层文件
+1. port.h                    - 主端口配置文件（数据类型、临界区宏）
+2. port_internal.h          - 内部端口配置（STM32系列检测、中断优先级）
+3. portserial.c             - 串口通信实现（UART配置、中断处理）
+4. porttimer.c              - 定时器实现（TIM7配置、中断处理）
+5. portevent.c              - 事件处理（简单事件队列）
+
+## 核心 Modbus 文件（来自原项目）
+
+### 2. Modbus 协议栈核心
+1. modbus/include/mbport.h  - Modbus端口接口定义
+2. modbus/mb.c              - Modbus主实现
+3. modbus/include/mb.h      - Modbus公共头文件
+4. modbus/include/mbconfig.h - Modbus配置头文件
+
+### 3. Modbus 功能实现
+1. modbus/mbrtu.c           - Modbus RTU模式实现
+2. modbus/mbascii.c         - Modbus ASCII模式实现
+3. modbus/mbfunc.c          - Modbus功能码实现
+4. modbus/mbframe.c         - Modbus帧处理
+
+## 示例文件（可参考修改）
+
+### 4. 示例应用
+1. demo/STM32_CMAKE/demo.c  - STM32示例应用程序
+2. demo/STM32_CMAKE/CMakeLists.txt - CMake构建配置示例
+
+## 硬件相关配置
+
+### 5. 硬件特定配置
+需要在 port_internal.h 中配置：
+1. STM32系列宏定义（STM32F3xx, STM32G4xx等）
+2. USART选择（MB_USART_NR）
+3. 中断优先级（MB_USART_IRQ_priority等）
+4. 调试引脚配置（可选）
+
+## 构建系统文件
+
+### 6. 构建配置
+1. CMakeLists.txt           - CMake构建脚本
+2. 或相应的Makefile/IDE项目文件
+
+## 文件依赖关系
+
+```
+port.h
+  ├── port_internal.h
+  │     ├── portserial.c
+  │     ├── porttimer.c
+  │     └── portevent.c
+  └── mbport.h
+        └── mb.c
+              ├── mbrtu.c
+              ├── mbascii.c
+              └── mbfunc.c
+```
+
+## 移植步骤
+
+1. 将移植层文件（port*）复制到项目
+2. 配置硬件相关宏定义（STM32系列、UART、中断）
+3. 将Modbus核心文件添加到构建系统
+4. 实现应用程序回调函数
+5. 在主循环中调用eMBPoll()
+
+## 注意事项
+
+1. 确保CMSIS和HAL库正确包含
+2. 注意STM32 UART配置的特殊性
+3. TIM7可能在所有STM32系列中不可用
+4. 根据实际硬件调整GPIO引脚配置
